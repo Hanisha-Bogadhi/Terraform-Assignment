@@ -42,29 +42,33 @@ resource "aws_instance" "single_ec2" {
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
   user_data = <<-EOF
-              #!/bin/bash
+        #!/bin/bash
 
-              apt update -y
+        sleep 30
 
-              apt install -y python3-pip nodejs npm git
+        apt update -y
 
-              cd /home/ubuntu
+        apt install -y python3-pip python3-flask nodejs npm git
 
-              git clone ${var.repo_url}
+        pip3 install --break-system-packages flask-cors
 
-              cd terraform-flask-express-assignment/backend
+        cd /home/ubuntu
 
-              pip3 install -r requirements.txt
+        git clone ${var.repo_url} || true
 
-              nohup python3 app.py &
+        cd Terraform-Assignment/backend
 
-              cd ../frontend
+        nohup python3 app.py > backend.log 2>&1 &
 
-              npm install
+        sleep 10
 
-              nohup node app.js &
+        cd ../frontend
 
-              EOF
+        npm install
+
+        nohup node server.js > frontend.log 2>&1 &
+
+        EOF
 
   tags = {
     Name = "Single-EC2"
