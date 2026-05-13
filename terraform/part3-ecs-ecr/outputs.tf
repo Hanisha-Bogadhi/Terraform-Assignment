@@ -1,3 +1,3 @@
-output "load_balancer_dns" {
-  value = aws_lb.app_alb.dns_name
+output "load_balancer_url" {
+  value = aws_lb.alb.dns_name
 }

@@ -2,115 +2,159 @@ provider "aws" {
   region = var.region
 }
 
+# ---------------- VPC ----------------
+
 resource "aws_vpc" "main" {
+
   cidr_block = "10.0.0.0/16"
 }
 
-resource "aws_subnet" "subnet1" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "ap-south-2a"
+resource "aws_subnet" "public1" {
+
+  vpc_id = aws_vpc.main.id
+
+  cidr_block = "10.0.1.0/24"
+
+  availability_zone = "ap-south-2a"
+
   map_public_ip_on_launch = true
 }
 
-resource "aws_subnet" "subnet2" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "ap-south-2b"
+resource "aws_subnet" "public2" {
+
+  vpc_id = aws_vpc.main.id
+
+  cidr_block = "10.0.2.0/24"
+
+  availability_zone = "ap-south-2b"
+
   map_public_ip_on_launch = true
 }
 
 resource "aws_internet_gateway" "igw" {
+
   vpc_id = aws_vpc.main.id
 }
 
-resource "aws_route_table" "rt" {
+resource "aws_route_table" "public_rt" {
 
   vpc_id = aws_vpc.main.id
 
   route {
+
     cidr_block = "0.0.0.0/0"
 
     gateway_id = aws_internet_gateway.igw.id
   }
 }
 
-resource "aws_route_table_association" "rta1" {
-  subnet_id      = aws_subnet.subnet1.id
-  route_table_id = aws_route_table.rt.id
+resource "aws_route_table_association" "a1" {
+
+  subnet_id = aws_subnet.public1.id
+
+  route_table_id = aws_route_table.public_rt.id
 }
 
-resource "aws_route_table_association" "rta2" {
-  subnet_id      = aws_subnet.subnet2.id
-  route_table_id = aws_route_table.rt.id
+resource "aws_route_table_association" "a2" {
+
+  subnet_id = aws_subnet.public2.id
+
+  route_table_id = aws_route_table.public_rt.id
 }
+
+# ---------------- SECURITY GROUP ----------------
 
 resource "aws_security_group" "ecs_sg" {
 
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
+
+    from_port = 80
+
+    to_port = 80
+
+    protocol = "tcp"
+
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port   = 5000
-    to_port     = 5000
-    protocol    = "tcp"
+
+    from_port = 3000
+
+    to_port = 3000
+
+    protocol = "tcp"
+
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
+
+    from_port = 5000
+
+    to_port = 5000
+
+    protocol = "tcp"
+
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+
+    from_port = 0
+
+    to_port = 0
+
+    protocol = "-1"
+
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
+# ---------------- ECR ----------------
+
 resource "aws_ecr_repository" "backend_repo" {
+
   name = var.backend_image
 }
 
 resource "aws_ecr_repository" "frontend_repo" {
+
   name = var.frontend_image
 }
 
-resource "aws_ecs_cluster" "main" {
+# ---------------- ECS ----------------
+
+resource "aws_ecs_cluster" "cluster" {
+
   name = "hanisha-cluster"
 }
 
-resource "aws_lb" "app_alb" {
+# ---------------- ALB ----------------
 
-  name               = "hanisha-alb"
+resource "aws_lb" "alb" {
 
-  internal           = false
+  name = "hanisha-alb"
+
+  internal = false
 
   load_balancer_type = "application"
 
-  security_groups    = [aws_security_group.ecs_sg.id]
+  security_groups = [aws_security_group.ecs_sg.id]
 
   subnets = [
-    aws_subnet.subnet1.id,
-    aws_subnet.subnet2.id
+    aws_subnet.public1.id,
+    aws_subnet.public2.id
   ]
 }
 
 resource "aws_lb_target_group" "frontend_tg" {
 
-  name     = "frontend-tg"
+  name = "frontend-tg"
 
-  port     = 3000
+  port = 3000
 
   protocol = "HTTP"
 
@@ -119,13 +163,14 @@ resource "aws_lb_target_group" "frontend_tg" {
   vpc_id = aws_vpc.main.id
 
   health_check {
+
     path = "/"
   }
 }
 
-resource "aws_lb_listener" "frontend_listener" {
+resource "aws_lb_listener" "listener" {
 
-  load_balancer_arn = aws_lb.app_alb.arn
+  load_balancer_arn = aws_lb.alb.arn
 
   port = 80
 
