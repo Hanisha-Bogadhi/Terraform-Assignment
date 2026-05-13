@@ -1,0 +1,20 @@
+.terraform/
+*.tfstate
+*.tfstate.backup
+terraform.tfvars
+node_modules/
+__pycache__/
+.env
+
+# Python
+__pycache__/
+*.pyc
+myenv/
+venv/
+env/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
