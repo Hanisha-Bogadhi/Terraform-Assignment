@@ -18,3 +18,9 @@ env/
 
 # OS files
 .DS_Store
+
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.pem
+terraform.tfvars
