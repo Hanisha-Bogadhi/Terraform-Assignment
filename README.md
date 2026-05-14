@@ -76,7 +76,7 @@ python app.py
 
 ```bash
 npm install
-node app.js
+node server.js
 ```
 
 ---
@@ -144,7 +144,7 @@ terraform apply
 Frontend:
 
 ```text
-http://<EC2-PUBLIC-IP>:3000
+http://40.192.27.109:3000
 ```
 
 Backend API was verified through frontend form submission.
@@ -218,6 +218,21 @@ terraform apply
 ```
 
 ---
+# Verification
+
+Frontend:
+
+```text
+http://16.112.12.156:3000
+```
+
+Backend API was verified through frontend form submission.
+
+# Note
+The EC2 instance was stopped
+
+---
+
 
 # Screenshots Taken
 
